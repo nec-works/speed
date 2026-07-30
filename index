@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<!-- 모바일에서 확대/축소 방지, 전체화면 꽉 차게 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>아이폰 전용 HUD 속도계</title>
+<style>
+    body { 
+        margin: 0; padding: 0; 
+        background-color: #000; /* OLED 배터리 절약용 블랙 */
+        color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        height: 100vh; overflow: hidden; 
+    }
+    
+    /* 시작 화면 */
+    #start-screen { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px; }
+    #start-screen h1 { color: #00d2ff; font-size: 28px; margin-bottom: 10px; }
+    #start-screen p { color: #888; font-size: 15px; margin-bottom: 30px; line-height: 1.5; }
+    .btn { background: #3498db; color: white; border: none; padding: 18px 40px; font-size: 20px; border-radius: 12px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); }
+    
+    /* HUD 메인 화면 */
+    #hud-screen { display: none; text-align: center; width: 100%; }
+    .speed-label { font-size: 24px; color: #888; margin-bottom: -10px; font-weight: bold; }
+    .speed-value { font-size: 200px; font-weight: 900; margin: 0; color: #00d2ff; line-height: 1.1; text-shadow: 0 0 30px rgba(0, 210, 255, 0.5); }
+    .unit { font-size: 28px; color: #666; font-weight: bold; }
+</style>
+</head>
+<body>
+
+    <!-- 앱을 켜면 처음 나오는 화면 -->
+    <div id="start-screen">
+        <h1>HUD 속도계</h1>
+        <p>아이폰 거치대에 꽂고 시작 버튼을 누르세요.<br>※ 위치(GPS) 권한을 반드시 "허용" 해주셔야 합니다.</p>
+        <button class="btn" onclick="startHUD()">🚀 시작하기</button>
+    </div>
+
+    <!-- 주행 중 띄워놓을 화면 -->
+    <div id="hud-screen">
+        <div class="speed-label">현재 속도</div>
+        <h1 class="speed-value" id="speed-display">0</h1>
+        <div class="unit">km/h</div>
+    </div>
+
+<script>
+    let wakeLock = null;
+
+    async function startHUD() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('hud-screen').style.display = 'block';
+
+        // 1. 화면 꺼짐 방지 (주행 중 화면 켜짐 유지)
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                // 브라우저 탭을 내렸다가 다시 켤 때도 꺼짐 방지 재적용
+                document.addEventListener('visibilitychange', async () => {
+                    if (wakeLock !== null && document.visibilityState === 'visible') {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                });
+            }
+        } catch (err) {
+            console.warn('화면 꺼짐 방지를 지원하지 않는 환경입니다.');
+        }
+
+        // 2. 아이폰 고정밀 GPS 추적 시작
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(updateSpeed, handleError, {
+                enableHighAccuracy: true, // 정확도 최대
+                maximumAge: 0,
+                timeout: 5000
+            });
+        } else {
+            alert("이 기기에서는 GPS를 지원하지 않습니다.");
+        }
+    }
+
+    // GPS 갱신될 때마다 실행되는 함수
+    function updateSpeed(position) {
+        // 아이폰 GPS 속도는 m/s로 나오므로 3.6을 곱해 km/h로 변환
+        let speed = position.coords.speed;
+        if (speed === null) speed = 0; 
+        
+        const kmh = Math.round(speed * 3.6);
+        
+        // 화면에 속도 띄우기
+        document.getElementById('speed-display').innerText = kmh;
+    }
+
+    function handleError(error) {
+        console.warn(`GPS 에러(${error.code}): ${error.message}`);
+        if(error.code === 1) alert("아이폰 설정에서 사파리(또는 브라우저)의 '위치 접근 권한'을 허용해주세요!");
+    }
+</script>
+</body>
+</html>
