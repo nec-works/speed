@@ -136,7 +136,7 @@
   <!-- 헤더 -->
   <header style="display: flex; justify-content: space-between; align-items: center; margin: 28px 4px 16px 4px;">
     <div>
-      <span style="font-size: 9px; font-weight: 700; color: #c084fc; letter-spacing: 1.5px; text-transform: uppercase;">GIST SYNC MANAGER</span>
+      <span style="font-size: 9px; font-weight: 700; color: #c084fc; letter-spacing: 1.5px; text-transform: uppercase;">VEHICLE MANAGER</span>
       <h1 style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
     </div>
     <div style="display: flex; gap: 4px;">
@@ -144,10 +144,16 @@
       <button type="button" onclick="toggleTheme()" id="themeBtn" title="테마 전환" style="font-size: 11px; font-weight: 600; color: #c084fc; background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
       </button>
-      <!-- Gist 수동 동기화 불러오기 버튼 -->
-      <button type="button" onclick="loadFromGist()" title="Gist에서 불러오기" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
-        <i class="fa-solid fa-cloud-arrow-down"></i> 동기화
+      <!-- 백업(다운로드) 버튼 -->
+      <button type="button" onclick="exportDataJson()" title="데이터 백업" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
+        <i class="fa-solid fa-download"></i> 백업
       </button>
+      <!-- 복원(업로드) 버튼 -->
+      <button type="button" onclick="document.getElementById('importFile').click()" title="데이터 복원" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
+        <i class="fa-solid fa-upload"></i> 복원
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importDataJson(event)">
+
       <!-- 초기화 버튼 -->
       <button type="button" onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
         <i class="fa-solid fa-rotate-right"></i>
@@ -278,7 +284,7 @@
         <input type="text" id="memo" placeholder="예: 슈퍼차저, 타이어 교환 등" class="input-field">
       </div>
       <button type="submit" style="width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: #ffffff; font-weight: 700; padding: 14px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.4); cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">
-        <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기 (Gist 자동 동기화)
+        <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기 (로컬 안전 저장)
       </button>
     </form>
   </section>
@@ -336,12 +342,6 @@
 </div>
 
 <script>
-// ==================== [새로 발급받은 Gist 및 토큰 설정] ====================
-const GIST_TOKEN = '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';
-const GIST_ID = '4718940b5a7d99a86f7212bb91522104';
-const GITHUB_USER = 'nec-works';
-// ==========================================================================
-
 function initTheme() {
   const savedTheme = localStorage.getItem('nathe_theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -445,70 +445,50 @@ function selectDate(dateStr) {
 
 let records = [];
 
-// [Gist 연동] GitHub Gist에서 data.json 불러오기 (우회 및 API 동시 지원)
-async function loadFromGist() {
-  try {
-    const rawUrl = `https://gist.githubusercontent.com/${GITHUB_USER}/${GIST_ID}/raw/data.json?t=${Date.now()}`;
-    const res = await fetch(rawUrl);
-    if (res.ok) {
-      const jsonData = await res.json();
-      if (Array.isArray(jsonData)) {
-        records = jsonData;
-        checkAndGenerateAutomaticRecords();
-        saveAndRender(false);
-        return;
-      }
-    }
-  } catch (e) {
-    console.warn("Gist Raw 로드 실패, API 방식으로 재시도");
-  }
+// [백업] YY-MM-DD 형태의 날짜 이름으로 data.json 다운로드
+function exportDataJson() {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const fileName = `${yy}-${mm}-${dd}.json`;
 
-  try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
-      headers: { 'Authorization': `Bearer ${GIST_TOKEN}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.files && data.files['data.json']) {
-        const fileContent = data.files['data.json'].content;
-        records = JSON.parse(fileContent);
-      }
-      checkAndGenerateAutomaticRecords();
-      saveAndRender(false);
-      return;
-    }
-  } catch (e) {
-    console.warn("Gist API 로드 실패, 로컬 데이터 사용");
-  }
-
-  records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
-  checkAndGenerateAutomaticRecords();
-  saveAndRender(false);
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", fileName);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
 }
 
-// [Gist 연동] GitHub Gist에 데이터 자동 저장 (PATCH)
-async function saveToGist() {
-  try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${GIST_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        files: {
-          'data.json': {
-            content: JSON.stringify(records, null, 2)
-          }
-        }
-      })
-    });
-    if (!res.ok) {
-      console.warn("Gist 저장 응답 에러 코드:", res.status);
+// [복원] data.json 파일 업로드 적용
+function importDataJson(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        records = imported;
+        saveAndRender();
+        alert('데이터를 성공적으로 불러왔습니다!');
+      } else {
+        alert('올바른 데이터 형식이 아닙니다.');
+      }
+    } catch (err) {
+      alert('JSON 파일 읽기 실패!');
     }
-  } catch (err) {
-    console.warn("Gist 자동 저장 실패 (로컬에만 반영됨)");
-  }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function loadData() {
+  records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
+  checkAndGenerateAutomaticRecords();
+  saveAndRender();
 }
 
 function checkAndGenerateAutomaticRecords() {
@@ -552,7 +532,7 @@ function resetData() {
   if (confirm('모든 기록을 초기화하시겠습니까?')) {
     records = [];
     checkAndGenerateAutomaticRecords();
-    saveAndRender(true);
+    saveAndRender();
   }
 }
 
@@ -634,20 +614,17 @@ if (recordForm) {
       const earnedPoint = Math.floor(amount * 0.05);
       if (earnedPoint > 0) { records.push({ id: Date.now() + 1, category: '채비 보너스포인트 적립', date, amount: earnedPoint, memo: memo ? `${memo} 충전 적립 5%` : '충전 적립 5%' }); }
     }
-    saveAndRender(true); 
+    saveAndRender(); 
     recordForm.reset(); 
     initCalendarUI(); 
     handleCategoryInput();
   });
 }
 
-function saveAndRender(syncGist = true) { 
+function saveAndRender() { 
   localStorage.setItem('nathe_car_records', JSON.stringify(records)); 
   updateFilterYears(); 
   renderApp();
-  if (syncGist) {
-    saveToGist();
-  }
 }
 
 const filterCategory = document.getElementById('filterCategory'); 
@@ -702,7 +679,7 @@ function updateFilterMonths() {
 function deleteRecord(id) { 
   if(confirm('정말 이 내역을 삭제하시겠습니까?')) { 
     records = records.filter(r => r.id !== id); 
-    saveAndRender(true); 
+    saveAndRender(); 
   } 
 }
 
@@ -791,9 +768,9 @@ function renderApp() {
   recordList.innerHTML = html;
 }
 
-// 최초 실행 시 캘린더 및 Gist 데이터 로드
+// 최초 실행 시 캘린더 및 데이터 로드
 initCalendarUI();
-loadFromGist();
+loadData();
 </script>
 </body>
 </html>
