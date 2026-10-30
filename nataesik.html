@@ -163,7 +163,7 @@
       <h1 style="font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
     </div>
     <div style="display: flex; gap: 6px;">
-      <button onclick="loadFromGitHub()" title="GitHub에서 최신 데이터 동기화" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+      <button onclick="loadFromGitHub()" title="데이터 동기화" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
         <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 3px;"></i> 동기화
       </button>
       <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
@@ -309,7 +309,7 @@
         <input type="text" id="memo" placeholder="예: 슈퍼차저, 타이어 교환 등" class="input-field">
       </div>
       <button type="submit" style="width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: #ffffff; font-weight: 700; padding: 12px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.4); cursor: pointer; font-size: 13px; transition: 0.2s; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); margin-top: 2px;">
-        <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기 (GitHub 동기화)
+        <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기
       </button>
     </form>
   </section>
@@ -367,12 +367,12 @@
 </div>
 
 <script>
-// ==================== [GitHub API 설정 (Bearer 인증)] ====================
+// ==================== [GitHub API 설정] ====================
 const GITHUB_TOKEN = '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';
 const REPO_OWNER = 'nec-works';
 const REPO_NAME = 'speed';
 const FILE_PATH = 'data.json';
-// =========================================================================
+// ============================================================
 
 let currentCalDate = new Date();
 let selectedDateStr = new Date().toISOString().split('T')[0];
@@ -446,7 +446,7 @@ initCalendarUI();
 
 let records = [];
 
-// 1. GitHub에서 data.json 불러오기 (Bearer 인증 적용)
+// 안전한 GitHub 데이터 로드 (CORS/네트워크 에러 방어)
 async function loadFromGitHub() {
   try {
     const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?t=${Date.now()}`;
@@ -459,19 +459,19 @@ async function loadFromGitHub() {
       records = JSON.parse(decodedContent);
       checkAndGenerateAutomaticRecords();
       saveAndRender(false);
-    } else {
-      records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
-      checkAndGenerateAutomaticRecords();
-      saveAndRender(false);
+      return;
     }
   } catch (e) {
-    records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
-    checkAndGenerateAutomaticRecords();
-    saveAndRender(false);
+    console.warn("GitHub API 직접 호출 차단됨, 로컬 데이터 사용");
   }
+
+  // API 실패 시 브라우저 로컬 저장소 활용
+  records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
+  checkAndGenerateAutomaticRecords();
+  saveAndRender(false);
 }
 
-// 2. GitHub에 data.json 자동 저장 (Bearer 인증 적용)
+// 안전한 GitHub 자동 저장 (에러 시 로컬에 우선 반영)
 async function saveToGitHub() {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
   try {
@@ -486,7 +486,7 @@ async function saveToGitHub() {
 
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(records, null, 2))));
 
-    const putRes = await fetch(url, {
+    await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -498,12 +498,8 @@ async function saveToGitHub() {
         sha: sha
       })
     });
-
-    if (!putRes.ok) {
-      console.error('GitHub 자동 저장 실패');
-    }
   } catch (err) {
-    console.error('GitHub 통신 오류:', err);
+    console.warn("GitHub 자동 저장 네트워크 에러 (로컬에만 반영됨)");
   }
 }
 
@@ -599,13 +595,13 @@ function handleCategoryInput() {
   if (cat === '채비 카드충전') { updatePointPreview(); } else { pointPreview.style.display = 'none'; }
 
   if (cat.startsWith('채비')) {
-    scrollToCard(0); // 슬라이드 1: 채비
+    scrollToCard(0); 
   } else if (cat === '기타 충전소 차감') {
-    scrollToCard(1); // 슬라이드 2: 충전 기타
+    scrollToCard(1); 
   } else if (cat === '테슬라 충전지출') {
-    scrollToCard(2); // 슬라이드 3: 충전 슈퍼차저
+    scrollToCard(2); 
   } else if (cat === '정비항목 지출내역') {
-    scrollToCard(3); // 슬라이드 4: 지출 기타
+    scrollToCard(3); 
   }
 }
 
@@ -637,7 +633,7 @@ recordForm.addEventListener('submit', (e) => {
   recordForm.reset(); 
   initCalendarUI(); 
   handleCategoryInput();
-  alert('저장 완료 및 GitHub 동기화 중!');
+  alert('저장 완료!');
 });
 
 function saveAndRender(syncGit = true) { 
@@ -733,79 +729,4 @@ function renderApp() {
   });
 
   let totalEarnedBenefit = totalBenefit;
-  let finalCardRemaining = manualRemaining !== null ? manualRemaining : (totalRealCharge + totalEarnedBenefit);
-  let realUsedAmount = (totalRealCharge + totalEarnedBenefit) - finalCardRemaining;
-  if (realUsedAmount < 0) realUsedAmount = 0;
-
-  let chargeDiscountAmount = Math.floor(realUsedAmount * 0.06);
-
-  document.getElementById('cardRemaining').textContent = finalCardRemaining.toLocaleString() + " 원";
-  realUsedDisplay.textContent = realUsedAmount.toLocaleString() + " 원";
-  chargeDiscountDisplay.textContent = chargeDiscountAmount.toLocaleString() + " 원";
-  totalBenefitDisplay.textContent = totalEarnedBenefit.toLocaleString() + " 원";
-
-  totalOtherChargeDisplay.innerHTML = `${totalOtherCharge.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
-  otherChargeCountDisplay.textContent = `${otherChargeCount}건`;
-
-  totalTeslaDisplay.innerHTML = `${totalTesla.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
-  teslaCountDisplay.textContent = `${teslaCount}건`;
-
-  totalGeneralExpenseDisplay.innerHTML = `${totalGeneralExpense.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
-  generalExpenseCountDisplay.textContent = `${generalExpenseCount}건`;
-
-  totalExpenseDisplay.textContent = `${totalExpense.toLocaleString()} 원`;
-
-  const catVal = filterCategory.value; const yearVal = filterYear.value; const monthVal = filterMonth.value;
-  let displayedRecords = records.filter(r => {
-    const [y, m] = r.date.split('-');
-    const matchCat = !catVal || r.category === catVal || (catVal === '채비 총구독비' && (r.category === '채비 월 구독비' || r.category === '채비 총구독비')) || (catVal === '채비 월 보너스 크레딧' && (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧')) || (catVal === '채비 보너스포인트 적립' && r.category === '채비 보너스포인트 적립');
-    const matchYear = !yearVal || y === yearVal; const matchMonth = !monthVal || m === monthVal;
-    return matchCat && matchYear && matchMonth;
-  });
-  displayedRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
-  recordCountEl.textContent = `${displayedRecords.length}건`;
-
-  if (displayedRecords.length === 0) {
-    recordList.innerHTML = `<div style="text-align: center; padding: 24px 0; color: #94a3b8; font-size: 11px;"><i class="fa-regular fa-folder-open" style="font-size: 20px; margin-bottom: 6px; display: block;"></i>조건에 일치하는 기록이 없습니다.</div>`;
-    return;
-  }
-
-  let html = '';
-  displayedRecords.forEach(r => {
-    let badgeBg = 'rgba(168, 85, 247, 0.1)';
-    let badgeColor = '#c084fc';
-    let displaySign = '';
-    let amountColor = '#f1f5f9';
-
-    const catName = (r.category === '채비 월 구독비' || r.category === '채비 총구독비') ? '[채비] 총구독비' : ((r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧') ? '[채비] 월 보너스 크레딧' : (r.category === '채비 보너스포인트 적립' ? '[채비] 충전 적립 5%' : r.category));
-
-    if (r.category === '채비 카드충전') { badgeBg = 'rgba(34, 197, 94, 0.1)'; badgeColor = '#4ade80'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '채비 카드 잔여') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
-    else if (r.category === '채비 월 구독비' || r.category === '채비 총구독비') { badgeBg = 'rgba(6, 182, 212, 0.1)'; badgeColor = '#22d3ee'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧' || r.category === '채비 보너스포인트 적립' || r.category === '채비 번개크레딧') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
-    else if (r.category === '기타 충전소 차감') { badgeBg = 'rgba(147, 51, 234, 0.1)'; badgeColor = '#c084fc'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '테슬라 충전지출') { badgeBg = 'rgba(239, 68, 68, 0.15)'; badgeColor = '#f87171'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '정비항목 지출내역' || r.category === '기타 지출내역') { badgeBg = 'rgba(51, 65, 85, 0.3)'; badgeColor = '#94a3b8'; displaySign = '-'; amountColor = '#f43f5e'; }
-
-    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(168, 85, 247, 0.1); border-radius: 12px; transition: 0.2s;">
-      <div style="display: flex; flex-direction: column; gap: 3px;">
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor};">${catName}</span>
-          <span style="font-size: 10px; color: #94a3b8;">${r.date}</span>
-        </div>
-        <p style="font-size: 11px; font-weight: 500; color: #cbd5e1;">${r.memo ? r.memo : '메모 없음'}</p>
-      </div>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 13px; font-weight: 800; color: ${amountColor};">${displaySign}${r.amount.toLocaleString()}원</span>
-        <button onclick="deleteRecord(${r.id})" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-trash-can"></i></button>
-      </div>
-    </div>`;
-  });
-  recordList.innerHTML = html;
-}
-
-// 앱 최초 실행 시 깃허브에서 데이터 로드
-loadFromGitHub();
-</script>
-</body>
-</html>
+  let finalCardRemaining = manualRemaining !== null ? manual
