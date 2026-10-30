@@ -162,11 +162,18 @@
       <span style="font-size: 9px; font-weight: 700; color: #c084fc; letter-spacing: 1.5px; text-transform: uppercase;">VEHICLE MANAGER</span>
       <h1 style="font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
     </div>
-    <div style="display: flex; gap: 6px;">
-      <button onclick="loadFromGitHub()" title="데이터 동기화" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
-        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 3px;"></i> 동기화
+    <div style="display: flex; gap: 5px;">
+      <!-- 데이터 백업 다운로드 버튼 -->
+      <button onclick="exportDataJson()" title="data.json 다운로드 (백업)" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-download"></i> 백업
       </button>
-      <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+      <!-- 데이터 업로드(가져오기) 버튼 -->
+      <button onclick="document.getElementById('importFile').click()" title="data.json 업로드 (복원)" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-upload"></i> 복원
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importDataJson(event)">
+
+      <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
         <i class="fa-solid fa-rotate-right"></i>
       </button>
     </div>
@@ -367,13 +374,6 @@
 </div>
 
 <script>
-// ==================== [GitHub API 설정] ====================
-const GITHUB_TOKEN = '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';
-const REPO_OWNER = 'nec-works';
-const REPO_NAME = 'speed';
-const FILE_PATH = 'data.json';
-// ============================================================
-
 let currentCalDate = new Date();
 let selectedDateStr = new Date().toISOString().split('T')[0];
 
@@ -456,60 +456,44 @@ function selectDate(dateStr) {
 
 let records = [];
 
-// GitHub 데이터 로드
-async function loadFromGitHub() {
-  try {
-    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?t=${Date.now()}`;
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const decodedContent = decodeURIComponent(escape(atob(data.content)));
-      records = JSON.parse(decodedContent);
-      checkAndGenerateAutomaticRecords();
-      saveAndRender(false);
-      return;
-    }
-  } catch (e) {
-    console.warn("GitHub API 로드 실패, 로컬 데이터 사용");
-  }
-
-  records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
-  checkAndGenerateAutomaticRecords();
-  saveAndRender(false);
+// [백업 기능] data.json 파일 다운로드
+function exportDataJson() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "data.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
 }
 
-// GitHub 자동 저장
-async function saveToGitHub() {
-  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
-  try {
-    let sha = '';
-    const getRes = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` }
-    });
-    if (getRes.ok) {
-      const fileData = await getRes.json();
-      sha = fileData.sha;
+// [복원 기능] data.json 파일 업로드 적용
+function importDataJson(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        records = imported;
+        saveAndRender();
+        alert('데이터를 성공적으로 불러왔습니다!');
+      } else {
+        alert('올바른 데이터 형식이 아닙니다.');
+      }
+    } catch (err) {
+      alert('JSON 파일 읽기 실패!');
     }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // 초기화
+}
 
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(records, null, 2))));
-
-    await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${GITHUB_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: 'Auto-update vehicle records via Na Tea SIK App',
-        content: content,
-        sha: sha
-      })
-    });
-  } catch (err) {
-    console.warn("GitHub 자동 저장 에러 (로컬에만 반영됨)");
-  }
+function loadData() {
+  records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
+  checkAndGenerateAutomaticRecords();
+  saveAndRender();
 }
 
 function checkAndGenerateAutomaticRecords() {
@@ -553,7 +537,7 @@ function resetData() {
   if (confirm('모든 기록을 초기화하시겠습니까?')) {
     records = [];
     checkAndGenerateAutomaticRecords();
-    saveAndRender(true);
+    saveAndRender();
   }
 }
 
@@ -640,7 +624,7 @@ if (recordForm) {
       const earnedPoint = Math.floor(amount * 0.05);
       if (earnedPoint > 0) { records.push({ id: Date.now() + 1, category: '채비 보너스포인트 적립', date, amount: earnedPoint, memo: memo ? `${memo} 충전 적립 5%` : '충전 적립 5%' }); }
     }
-    saveAndRender(true); 
+    saveAndRender(); 
     recordForm.reset(); 
     initCalendarUI(); 
     handleCategoryInput();
@@ -648,13 +632,10 @@ if (recordForm) {
   });
 }
 
-function saveAndRender(syncGit = true) { 
+function saveAndRender() { 
   localStorage.setItem('nathe_car_records', JSON.stringify(records)); 
   updateFilterYears(); 
   renderApp();
-  if (syncGit) {
-    saveToGitHub();
-  }
 }
 
 const filterCategory = document.getElementById('filterCategory'); 
@@ -709,7 +690,7 @@ function updateFilterMonths() {
 function deleteRecord(id) { 
   if(confirm('정말 이 내역을 삭제하시겠습니까?')) { 
     records = records.filter(r => r.id !== id); 
-    saveAndRender(true); 
+    saveAndRender(); 
   } 
 }
 
@@ -850,9 +831,9 @@ function renderApp() {
   recordList.innerHTML = html;
 }
 
-// 최초 실행 시 초기화 및 데이터 로드
+// 최초 실행 시 초기화 및 로컬 데이터 로드
 initCalendarUI();
-loadFromGitHub();
+loadData();
 </script>
 </body>
 </html>
