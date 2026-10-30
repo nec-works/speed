@@ -162,9 +162,19 @@
       <span style="font-size: 9px; font-weight: 700; color: #c084fc; letter-spacing: 1.5px; text-transform: uppercase;">VEHICLE MANAGER</span>
       <h1 style="font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
     </div>
-    <button onclick="resetData()" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
-      <i class="fa-solid fa-rotate-right" style="margin-right: 4px;"></i> 초기화
-    </button>
+    <div style="display: flex; gap: 6px;">
+      <!-- JSON 백업/복원 버튼 추가 -->
+      <button onclick="exportJSON()" title="데이터 JSON 백업" style="font-size: 11px; font-weight: 600; color: #60a5fa; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-download"></i>
+      </button>
+      <label title="데이터 JSON 불러오기" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center;">
+        <i class="fa-solid fa-upload"></i>
+        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display: none;">
+      </label>
+      <button onclick="resetData()" title="데이터 초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+    </div>
   </header>
 
   <!-- 슬라이드 카드 영역 (총 4장) -->
@@ -478,6 +488,39 @@ function resetData() {
     records = [];
     checkAndGenerateAutomaticRecords();
     saveAndRender();
+  }
+}
+
+// JSON 백업 다운로드 함수
+function exportJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "nathe_car_backup.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+// JSON 복원 업로드 함수
+function importJSON(event) {
+  const fileReader = new FileReader();
+  if(event.target.files[0]) {
+    fileReader.readAsText(event.target.files[0], "UTF-8");
+    fileReader.onload = (e) => {
+      try {
+        const importedRecords = JSON.parse(e.target.result);
+        if (Array.isArray(importedRecords)) {
+          records = importedRecords;
+          saveAndRender();
+          alert('데이터를 성공적으로 불러왔습니다!');
+        } else {
+          alert('올바른 데이터 형식이 아닙니다.');
+        }
+      } catch (err) {
+        alert('JSON 파일 파싱 중 오류가 발생했습니다.');
+      }
+    };
   }
 }
 
