@@ -336,10 +336,11 @@
 </div>
 
 <script>
-// ==================== [GitHub Gist API 설정] ====================
-const GIST_TOKEN = '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';
-const GIST_ID = '876036e2e2755d9d39d962dfa1b9975d';
-// ===============================================================
+// ==================== [새로 발급받은 Gist 및 토큰 설정] ====================
+const GIST_TOKEN = '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';
+const GIST_ID = '4718940b5a7d99a86f7212bb91522104';
+const GITHUB_USER = 'nec-works';
+// ==========================================================================
 
 function initTheme() {
   const savedTheme = localStorage.getItem('nathe_theme') || 'dark';
@@ -444,19 +445,19 @@ function selectDate(dateStr) {
 
 let records = [];
 
-// [Gist 연동] GitHub Gist에서 data.json 불러오기 (CORS 우회 적용)
+// [Gist 연동] GitHub Gist에서 data.json 불러오기 (우회 및 API 동시 지원)
 async function loadFromGist() {
   try {
-    const rawUrl = `https://gist.githubusercontent.com/nec-works/${GIST_ID}/raw/data.json?t=${Date.now()}`;
+    const rawUrl = `https://gist.githubusercontent.com/${GITHUB_USER}/${GIST_ID}/raw/data.json?t=${Date.now()}`;
     const res = await fetch(rawUrl);
     if (res.ok) {
       const jsonData = await res.json();
       if (Array.isArray(jsonData)) {
         records = jsonData;
+        checkAndGenerateAutomaticRecords();
+        saveAndRender(false);
+        return;
       }
-      checkAndGenerateAutomaticRecords();
-      saveAndRender(false);
-      return;
     }
   } catch (e) {
     console.warn("Gist Raw 로드 실패, API 방식으로 재시도");
@@ -485,7 +486,7 @@ async function loadFromGist() {
   saveAndRender(false);
 }
 
-// [Gist 연동] GitHub Gist에 데이터 자동 저장
+// [Gist 연동] GitHub Gist에 데이터 자동 저장 (PATCH)
 async function saveToGist() {
   try {
     const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
