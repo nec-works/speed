@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 핀치 줌 및 인풋 포커스 시 화면 확대 방지 메타 태그 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>NA TEA SIK</title>
 
 <!-- 아이폰 홈 화면 추가 및 SNS 공유 메타 태그 -->
@@ -16,65 +17,90 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+  
+  /* 테마별 변수 설정 */
+  :root {
+    --bg-gradient: linear-gradient(135deg, #07050f 0%, #0d0918 50%, #040308 100%);
+    --text-color: #e2e8f0;
+    --card-bg: rgba(25, 18, 40, 0.45);
+    --card-border: 1px solid rgba(168, 85, 247, 0.1);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --input-border: 1px solid rgba(168, 85, 247, 0.15);
+    --input-color: #f1f5f9;
+    --sub-text: #94a3b8;
+  }
+
+  [data-theme="light"] {
+    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+    --text-color: #1e293b;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-border: 1px solid rgba(168, 85, 247, 0.2);
+    --input-bg: rgba(0, 0, 0, 0.02);
+    --input-border: 1px solid rgba(168, 85, 247, 0.3);
+    --input-color: #0f172a;
+    --sub-text: #64748b;
+  }
+
   body { 
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Apple SD Gothic Neo', sans-serif; 
-    background: linear-gradient(135deg, #07050f 0%, #0d0918 50%, #040308 100%);
-    color: #e2e8f0;
+    background: var(--bg-gradient);
+    color: var(--text-color);
     padding-bottom: 60px;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.3s ease, color 0.3s ease;
   }
   .no-scrollbar::-webkit-scrollbar { display: none; } 
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   
   .clean-card {
-    background: rgba(25, 18, 40, 0.45);
+    background: var(--card-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(168, 85, 247, 0.1);
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+    border: var(--card-border);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
     border-radius: 20px;
     padding: 22px;
+    transition: background 0.3s ease, border 0.3s ease;
   }
   .primary-gradient {
-    background: linear-gradient(135deg, rgba(76, 29, 149, 0.45) 0%, rgba(59, 7, 100, 0.6) 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, rgba(76, 29, 149, 0.85) 0%, rgba(59, 7, 100, 0.95) 100%);
+    color: #ffffff !important;
     border: 1px solid rgba(168, 85, 247, 0.25);
     box-shadow: 0 12px 35px -5px rgba(76, 29, 149, 0.25);
   }
   .other-gradient {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(30, 27, 75, 0.6) 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.85) 0%, rgba(30, 27, 75, 0.95) 100%);
+    color: #ffffff !important;
     border: 1px solid rgba(96, 165, 250, 0.25);
     box-shadow: 0 12px 35px -5px rgba(30, 58, 138, 0.25);
   }
   .tesla-gradient {
-    background: linear-gradient(135deg, rgba(153, 27, 27, 0.5) 0%, rgba(69, 10, 10, 0.7) 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, rgba(153, 27, 27, 0.85) 0%, rgba(69, 10, 10, 0.95) 100%);
+    color: #ffffff !important;
     border: 1px solid rgba(239, 68, 68, 0.3);
     box-shadow: 0 12px 35px -5px rgba(153, 27, 27, 0.3);
   }
   .expense-gradient {
-    background: linear-gradient(135deg, rgba(51, 65, 85, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+    color: #ffffff !important;
     border: 1px solid rgba(148, 163, 184, 0.3);
     box-shadow: 0 12px 35px -5px rgba(51, 65, 85, 0.3);
   }
   .input-field {
     width: 100%;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(168, 85, 247, 0.15);
+    background: var(--input-bg);
+    border: var(--input-border);
     border-radius: 12px;
     padding: 11px 14px;
-    font-size: 13px;
-    color: #f1f5f9;
+    font-size: 16px; 
+    color: var(--input-color);
     outline: none;
     transition: all 0.2s ease;
   }
   .input-field:focus {
     border-color: #a855f7;
-    background: rgba(255, 255, 255, 0.06);
     box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
   }
   select.input-field {
@@ -89,6 +115,10 @@
   select.input-field option {
     background-color: #120a1f;
     color: #f1f5f9;
+  }
+  [data-theme="light"] select.input-field option {
+    background-color: #ffffff;
+    color: #0f172a;
   }
 
   /* 커스텀 캘린더 모달 스타일 */
@@ -114,6 +144,10 @@
     padding: 20px;
     color: #f1f5f9;
   }
+  [data-theme="light"] .cal-box {
+    background: #ffffff;
+    color: #0f172a;
+  }
   .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -124,7 +158,7 @@
   .cal-day-header {
     font-size: 11px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--sub-text);
     padding-bottom: 6px;
   }
   .cal-cell {
@@ -132,12 +166,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     border-radius: 10px;
     cursor: pointer;
     transition: 0.15s;
-    color: #e2e8f0;
+    color: var(--text-color);
   }
   .cal-cell:hover {
     background: rgba(168, 85, 247, 0.2);
@@ -145,35 +179,40 @@
   }
   .cal-cell.selected {
     background: #7c3aed;
-    color: #ffffff;
+    color: #ffffff !important;
     font-weight: 700;
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
   }
   .cal-cell.other-month {
-    color: #475569;
+    color: #94a3b8;
+    opacity: 0.5;
   }
 </style>
 </head>
 <body>
 <div style="max-width: 420px; margin: 0 auto; padding: 16px;">
   <!-- 헤더 -->
-  <header style="display: flex; justify-content: space-between; align-items: center; margin: 20px 4px 16px 4px;">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin: 28px 4px 16px 4px;">
     <div>
       <span style="font-size: 9px; font-weight: 700; color: #c084fc; letter-spacing: 1.5px; text-transform: uppercase;">VEHICLE MANAGER</span>
-      <h1 style="font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
+      <h1 style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
     </div>
-    <div style="display: flex; gap: 5px;">
-      <!-- 데이터 백업 다운로드 버튼 -->
-      <button onclick="exportDataJson()" title="data.json 다운로드 (백업)" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
-        <i class="fa-solid fa-download"></i> 백업
+    <div style="display: flex; gap: 4px;">
+      <!-- 테마 전환 버튼 -->
+      <button onclick="toggleTheme()" id="themeBtn" title="테마 전환" style="font-size: 11px; font-weight: 600; color: #c084fc; background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
       </button>
-      <!-- 데이터 업로드(가져오기) 버튼 -->
-      <button onclick="document.getElementById('importFile').click()" title="data.json 업로드 (복원)" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
-        <i class="fa-solid fa-upload"></i> 복원
+      <!-- 백업 버튼 -->
+      <button onclick="exportDataJson()" title="백업" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-download"></i>
+      </button>
+      <!-- 복원 버튼 -->
+      <button onclick="document.getElementById('importFile').click()" title="복원" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-upload"></i>
       </button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importDataJson(event)">
 
-      <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+      <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
         <i class="fa-solid fa-rotate-right"></i>
       </button>
     </div>
@@ -187,17 +226,17 @@
       <section style="min-width: 100%; scroll-snap-align: center;" class="primary-gradient clean-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
-            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px;">CHAEVI BALANCE</span>
+            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px;">CHAEVI BALANCE</span>
             <h2 id="cardRemaining" style="font-size: 28px; font-weight: 900; margin-top: 4px; letter-spacing: -0.5px;">0 <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span></h2>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15);">
+          <div style="background: rgba(255,255,255,0.15); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);">
             <i class="fa-solid fa-bolt" style="font-size: 16px; color: #facc15;"></i>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px;">
-          <div><span style="display: block; color: rgba(255,255,255,0.6); margin-bottom: 2px;">실제 사용한 금액</span><span id="realUsedDisplay" style="font-weight: 700; font-size: 12px; color: #f43f5e;">0 원</span></div>
-          <div><span style="display: block; color: rgba(255,255,255,0.6); margin-bottom: 2px;">6% 할인 혜택</span><span id="chargeDiscountDisplay" style="font-weight: 700; font-size: 12px; color: #4ade80;">0 원</span></div>
-          <div style="grid-column: span 2; margin-top: 4px;"><span style="display: block; color: rgba(255,255,255,0.6); margin-bottom: 2px;">총 이득 포인트 (구독+5%적립+번개)</span><span id="totalBenefitDisplay" style="font-weight: 700; font-size: 13px; color: #facc15;">0 원</span></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 11px;">
+          <div><span style="display: block; color: rgba(255,255,255,0.7); margin-bottom: 2px;">실제 사용한 금액</span><span id="realUsedDisplay" style="font-weight: 700; font-size: 12px; color: #fca5a5;">0 원</span></div>
+          <div><span style="display: block; color: rgba(255,255,255,0.7); margin-bottom: 2px;">6% 할인 혜택</span><span id="chargeDiscountDisplay" style="font-weight: 700; font-size: 12px; color: #86efac;">0 원</span></div>
+          <div style="grid-column: span 2; margin-top: 4px;"><span style="display: block; color: rgba(255,255,255,0.7); margin-bottom: 2px;">총 이득 포인트 (구독+5%적립+번개)</span><span id="totalBenefitDisplay" style="font-weight: 700; font-size: 13px; color: #fde047;">0 원</span></div>
         </div>
       </section>
 
@@ -205,15 +244,15 @@
       <section style="min-width: 100%; scroll-snap-align: center;" class="other-gradient clean-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
-            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px;">OTHER CHARGERS</span>
+            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px;">OTHER CHARGERS</span>
             <h2 id="totalOtherChargeDisplay" style="font-size: 28px; font-weight: 900; margin-top: 4px; letter-spacing: -0.5px;">0 <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span></h2>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15);">
-            <i class="fa-solid fa-gas-pump" style="font-size: 16px; color: #60a5fa;"></i>
+          <div style="background: rgba(255,255,255,0.15); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);">
+            <i class="fa-solid fa-gas-pump" style="font-size: 16px; color: #93c5fd;"></i>
           </div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px;">
-          <span style="color: rgba(255,255,255,0.6);">타 충전소 이용 건수</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 11px;">
+          <span style="color: rgba(255,255,255,0.7);">타 충전소 이용 건수</span>
           <span id="otherChargeCountDisplay" style="font-weight: 700; font-size: 13px;">0 건</span>
         </div>
       </section>
@@ -222,18 +261,18 @@
       <section style="min-width: 100%; scroll-snap-align: center;" class="tesla-gradient clean-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
-            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px;">SUPERCHARGER</span>
+            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.5px;">SUPERCHARGER</span>
             <h2 id="totalTeslaDisplay" style="font-size: 28px; font-weight: 900; margin-top: 4px; letter-spacing: -0.5px;">0 <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span></h2>
           </div>
-          <div style="background: rgba(255,255,255,0.12); width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
+          <div style="background: rgba(255,255,255,0.15); width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.25);">
             <svg style="width: 22px; height: 22px; fill: #ffffff;" viewBox="0 0 100 100">
               <path d="M96.5,15.2C85,12.7,46.5,12,46.5,12s-38.5,0.7-50,3.2C6.3,16.5,3.7,21.5,4,27.5C4.3,34,5,44,5,44s3.7,1,11,1.5 c6,0.5,10.2-0.5,11-1.5c0,0,0.5-12.2,0.7-18c0.2-5.8,1.2-7.5,7-7.7c11.5-0.5,31-0.7,31-0.7s19.5,0.2,31,0.7c5.8,0.2,6.8,1.8,7,7.7 c0.2,5.8,0.7,18,0.7,18c0.8,1,5,2,11,1.5c7.3-0.5,11-1.5,11-1.5s0.7-10,1-16.5C96.3,21.5,93.7,16.5,96.5,15.2z"/>
               <path d="M41,35.5c0,0-1,34-1,40.5c0,6.5,2,9,9.5,9.5c7.5,0.5,9.5-3,9.5-9.5c0-6.5-1-40.5-1-40.5s-8.5-0.2-17,0-8.5,0-8.5,0Z"/>
             </svg>
           </div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px;">
-          <span style="color: rgba(255,255,255,0.7);">슈퍼차저 누적 건수</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 11px;">
+          <span style="color: rgba(255,255,255,0.8);">슈퍼차저 누적 건수</span>
           <span id="teslaCountDisplay" style="font-weight: 700; font-size: 13px;">0 건</span>
         </div>
       </section>
@@ -242,15 +281,15 @@
       <section style="min-width: 100%; scroll-snap-align: center;" class="expense-gradient clean-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
-            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px;">GENERAL EXPENSE</span>
+            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.5px;">GENERAL EXPENSE</span>
             <h2 id="totalGeneralExpenseDisplay" style="font-size: 28px; font-weight: 900; margin-top: 4px; letter-spacing: -0.5px;">0 <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span></h2>
           </div>
-          <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15);">
+          <div style="background: rgba(255,255,255,0.15); padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2);">
             <i class="fa-solid fa-wrench" style="font-size: 16px; color: #cbd5e1;"></i>
           </div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px;">
-          <span style="color: rgba(255,255,255,0.7);">지출 내역 건수</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 11px;">
+          <span style="color: rgba(255,255,255,0.8);">지출 내역 건수</span>
           <span id="generalExpenseCountDisplay" style="font-weight: 700; font-size: 13px;">0 건</span>
         </div>
       </section>
@@ -273,7 +312,7 @@
       </div>
       <div>
         <span style="font-size: 10px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 1px;">TOTAL EXPENSE</span>
-        <span style="font-size: 10px; color: #94a3b8;">통장 출금 총액 기준</span>
+        <span style="font-size: 10px; color: var(--sub-text);">통장 출금 총액 기준</span>
       </div>
     </div>
     <div style="text-align: right;">
@@ -283,12 +322,12 @@
 
   <!-- 새 내역 기록하기 -->
   <section class="clean-card" style="margin-bottom: 16px;">
-    <h3 style="font-size: 13px; font-weight: 800; color: #ffffff; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
+    <h3 style="font-size: 13px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
       <i class="fa-solid fa-pen-to-square" style="color: #c084fc;"></i> 새 내역 기록하기
     </h3>
     <form id="recordForm" style="display: flex; flex-direction: column; gap: 12px;">
       <div>
-        <label style="display: block; font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 5px;">구분</label>
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--sub-text); margin-bottom: 5px;">구분</label>
         <select id="category" onchange="handleCategoryInput()" class="input-field" required>
           <option value="채비 카드 잔여">[채비] 카드 잔여금 기입</option>
           <option value="채비 카드충전">[채비] 카드 선금 충전</option>
@@ -299,7 +338,7 @@
         </select>
       </div>
       <div>
-        <label style="display: block; font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 5px;">날짜</label>
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--sub-text); margin-bottom: 5px;">날짜</label>
         <div onclick="openCalendar()" class="input-field" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
           <span id="selectedDateText">날짜를 선택하세요</span>
           <i class="fa-regular fa-calendar" style="color: #c084fc;"></i>
@@ -307,15 +346,15 @@
         <input type="text" id="recordDate" style="display:none;" required>
       </div>
       <div>
-        <label id="amountLabel" style="display: block; font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 5px;">금액 (원)</label>
+        <label id="amountLabel" style="display: block; font-size: 11px; font-weight: 700; color: var(--sub-text); margin-bottom: 5px;">금액 (원)</label>
         <input type="number" id="amount" placeholder="금액을 입력하세요" class="input-field" required>
         <p id="pointPreview" style="font-size: 11px; font-weight: 600; color: #c084fc; margin-top: 5px; display: none;"></p>
       </div>
       <div>
-        <label style="display: block; font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 5px;">상세 내용 / 메모</label>
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--sub-text); margin-bottom: 5px;">상세 내용 / 메모</label>
         <input type="text" id="memo" placeholder="예: 슈퍼차저, 타이어 교환 등" class="input-field">
       </div>
-      <button type="submit" style="width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: #ffffff; font-weight: 700; padding: 12px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.4); cursor: pointer; font-size: 13px; transition: 0.2s; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); margin-top: 2px;">
+      <button type="submit" style="width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: #ffffff; font-weight: 700; padding: 14px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.4); cursor: pointer; font-size: 14px; transition: 0.2s; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); margin-top: 2px;">
         <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기
       </button>
     </form>
@@ -325,13 +364,13 @@
   <section class="clean-card">
     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+        <h3 style="font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-list" style="color: #c084fc;"></i> 기록 목록
         </h3>
-        <span id="recordCount" style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.08); color: #cbd5e1; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">0건</span>
+        <span id="recordCount" style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.08); color: var(--sub-text); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">0건</span>
       </div>
       <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 6px;">
-        <select id="filterCategory" onchange="handleCategoryChange()" class="input-field" style="padding: 8px 10px; font-size: 10px;">
+        <select id="filterCategory" onchange="handleCategoryChange()" class="input-field" style="padding: 8px 10px; font-size: 12px;">
           <option value="">전체보기</option>
           <option value="채비 카드 잔여">[채비] 카드 잔여금 기입</option>
           <option value="채비 카드충전">[채비] 카드 선금 충전</option>
@@ -343,8 +382,8 @@
           <option value="테슬라 충전지출">[충전] 슈퍼차저</option>
           <option value="정비항목 지출내역">[지출] 기타</option>
         </select>
-        <select id="filterYear" onchange="handleYearChange()" class="input-field" style="padding: 8px 10px; font-size: 10px;" disabled><option value="">연도 선택</option></select>
-        <select id="filterMonth" onchange="renderApp()" class="input-field" style="padding: 8px 10px; font-size: 10px;" disabled><option value="">월 선택</option></select>
+        <select id="filterYear" onchange="handleYearChange()" class="input-field" style="padding: 8px 10px; font-size: 12px;" disabled><option value="">연도 선택</option></select>
+        <select id="filterMonth" onchange="renderApp()" class="input-field" style="padding: 8px 10px; font-size: 12px;" disabled><option value="">월 선택</option></select>
       </div>
     </div>
     <div id="recordList" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 2px;"></div>
@@ -356,7 +395,7 @@
   <div class="cal-box">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
       <button onclick="changeMonth(-1)" style="background: none; border: none; color: #c084fc; cursor: pointer; font-size: 14px; padding: 6px 10px;"><i class="fa-solid fa-chevron-left"></i></button>
-      <h3 id="calTitle" style="font-size: 15px; font-weight: 800; color: #ffffff;">2026년 4월</h3>
+      <h3 id="calTitle" style="font-size: 15px; font-weight: 800;">2026년 4월</h3>
       <button onclick="changeMonth(1)" style="background: none; border: none; color: #c084fc; cursor: pointer; font-size: 14px; padding: 6px 10px;"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
     <div class="cal-grid">
@@ -369,11 +408,39 @@
       <div class="cal-day-header" style="color: #60a5fa;">토</div>
     </div>
     <div id="calDays" class="cal-grid"></div>
-    <button onclick="closeCalendar()" style="width: 100%; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-weight: 700; padding: 10px; border-radius: 12px; margin-top: 16px; cursor: pointer; font-size: 12px;">닫기</button>
+    <button onclick="closeCalendar()" style="width: 100%; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-weight: 700; padding: 12px; border-radius: 12px; margin-top: 16px; cursor: pointer; font-size: 13px;">닫기</button>
   </div>
 </div>
 
 <script>
+// ==================== [테마 전환 로직] ====================
+function initTheme() {
+  const savedTheme = localStorage.getItem('nathe_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('nathe_theme', newTheme);
+  updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    if (theme === 'light') {
+      icon.className = "fa-solid fa-sun";
+    } else {
+      icon.className = "fa-solid fa-moon";
+    }
+  }
+}
+initTheme();
+// ============================================================
+
 let currentCalDate = new Date();
 let selectedDateStr = new Date().toISOString().split('T')[0];
 
@@ -456,18 +523,24 @@ function selectDate(dateStr) {
 
 let records = [];
 
-// [백업 기능] data.json 파일 다운로드
+// [백업] YY-MM-DD 형태의 날짜 이름으로 data.json 다운로드
 function exportDataJson() {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const fileName = `${yy}-${mm}-${dd}.json`;
+
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "data.json");
+  downloadAnchor.setAttribute("download", fileName);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
 }
 
-// [복원 기능] data.json 파일 업로드 적용
+// [복원] data.json 파일 업로드 적용
 function importDataJson(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -487,7 +560,7 @@ function importDataJson(event) {
     }
   };
   reader.readAsText(file);
-  event.target.value = ''; // 초기화
+  event.target.value = '';
 }
 
 function loadData() {
@@ -793,7 +866,7 @@ function renderApp() {
 
   if (!recordList) return;
   if (displayedRecords.length === 0) {
-    recordList.innerHTML = `<div style="text-align: center; padding: 24px 0; color: #94a3b8; font-size: 11px;"><i class="fa-regular fa-folder-open" style="font-size: 20px; margin-bottom: 6px; display: block;"></i>조건에 일치하는 기록이 없습니다.</div>`;
+    recordList.innerHTML = `<div style="text-align: center; padding: 24px 0; color: var(--sub-text); font-size: 11px;"><i class="fa-regular fa-folder-open" style="font-size: 20px; margin-bottom: 6px; display: block;"></i>조건에 일치하는 기록이 없습니다.</div>`;
     return;
   }
 
@@ -802,29 +875,29 @@ function renderApp() {
     let badgeBg = 'rgba(168, 85, 247, 0.1)';
     let badgeColor = '#c084fc';
     let displaySign = '';
-    let amountColor = '#f1f5f9';
+    let amountColor = 'var(--text-color)';
 
     const catName = (r.category === '채비 월 구독비' || r.category === '채비 총구독비') ? '[채비] 총구독비' : ((r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧') ? '[채비] 월 보너스 크레딧' : (r.category === '채비 보너스포인트 적립' ? '[채비] 충전 적립 5%' : r.category));
 
-    if (r.category === '채비 카드충전') { badgeBg = 'rgba(34, 197, 94, 0.1)'; badgeColor = '#4ade80'; displaySign = '-'; amountColor = '#f43f5e'; }
+    if (r.category === '채비 카드충전') { badgeBg = 'rgba(34, 197, 94, 0.1)'; badgeColor = '#22c55e'; displaySign = '-'; amountColor = '#ef4444'; }
     else if (r.category === '채비 카드 잔여') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
-    else if (r.category === '채비 월 구독비' || r.category === '채비 총구독비') { badgeBg = 'rgba(6, 182, 212, 0.1)'; badgeColor = '#22d3ee'; displaySign = '-'; amountColor = '#f43f5e'; }
+    else if (r.category === '채비 월 구독비' || r.category === '채비 총구독비') { badgeBg = 'rgba(6, 182, 212, 0.1)'; badgeColor = '#06b6d4'; displaySign = '-'; amountColor = '#ef4444'; }
     else if (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧' || r.category === '채비 보너스포인트 적립' || r.category === '채비 번개크레딧') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
-    else if (r.category === '기타 충전소 차감') { badgeBg = 'rgba(147, 51, 234, 0.1)'; badgeColor = '#c084fc'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '테슬라 충전지출') { badgeBg = 'rgba(239, 68, 68, 0.15)'; badgeColor = '#f87171'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '정비항목 지출내역' || r.category === '기타 지출내역') { badgeBg = 'rgba(51, 65, 85, 0.3)'; badgeColor = '#94a3b8'; displaySign = '-'; amountColor = '#f43f5e'; }
+    else if (r.category === '기타 충전소 차감') { badgeBg = 'rgba(147, 51, 234, 0.1)'; badgeColor = '#9333ea'; displaySign = '-'; amountColor = '#ef4444'; }
+    else if (r.category === '테슬라 충전지출') { badgeBg = 'rgba(239, 68, 68, 0.15)'; badgeColor = '#ef4444'; displaySign = '-'; amountColor = '#ef4444'; }
+    else if (r.category === '정비항목 지출내역' || r.category === '기타 지출내역') { badgeBg = 'rgba(51, 65, 85, 0.15)'; badgeColor = 'var(--sub-text)'; displaySign = '-'; amountColor = '#ef4444'; }
 
-    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(168, 85, 247, 0.1); border-radius: 12px; transition: 0.2s;">
+    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--input-bg); border: var(--input-border); border-radius: 12px; transition: 0.2s;">
       <div style="display: flex; flex-direction: column; gap: 3px;">
         <div style="display: flex; align-items: center; gap: 5px;">
           <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor};">${catName}</span>
-          <span style="font-size: 10px; color: #94a3b8;">${r.date}</span>
+          <span style="font-size: 10px; color: var(--sub-text);">${r.date}</span>
         </div>
-        <p style="font-size: 11px; font-weight: 500; color: #cbd5e1;">${r.memo ? r.memo : '메모 없음'}</p>
+        <p style="font-size: 11px; font-weight: 500; color: var(--text-color);">${r.memo ? r.memo : '메모 없음'}</p>
       </div>
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 13px; font-weight: 800; color: ${amountColor};">${displaySign}${r.amount.toLocaleString()}원</span>
-        <button onclick="deleteRecord(${r.id})" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-trash-can"></i></button>
+        <button onclick="deleteRecord(${r.id})" style="background: none; border: none; color: var(--sub-text); cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--sub-text)'"><i class="fa-solid fa-trash-can"></i></button>
       </div>
     </div>`;
   });
