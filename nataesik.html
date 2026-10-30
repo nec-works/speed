@@ -367,12 +367,12 @@
 </div>
 
 <script>
-// ==================== [GitHub API 설정] ====================
+// ==================== [GitHub API 설정 (Bearer 인증)] ====================
 const GITHUB_TOKEN = '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';
 const REPO_OWNER = 'nec-works';
 const REPO_NAME = 'speed';
 const FILE_PATH = 'data.json';
-// ============================================================
+// =========================================================================
 
 let currentCalDate = new Date();
 let selectedDateStr = new Date().toISOString().split('T')[0];
@@ -446,12 +446,12 @@ initCalendarUI();
 
 let records = [];
 
-// 1. GitHub에서 data.json 불러오기
+// 1. GitHub에서 data.json 불러오기 (Bearer 인증 적용)
 async function loadFromGitHub() {
   try {
     const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?t=${Date.now()}`;
     const res = await fetch(url, {
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+      headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` }
     });
     if (res.ok) {
       const data = await res.json();
@@ -471,13 +471,13 @@ async function loadFromGitHub() {
   }
 }
 
-// 2. GitHub에 data.json 자동 저장 (Commit)
+// 2. GitHub에 data.json 자동 저장 (Bearer 인증 적용)
 async function saveToGitHub() {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
   try {
     let sha = '';
     const getRes = await fetch(url, {
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+      headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` }
     });
     if (getRes.ok) {
       const fileData = await getRes.json();
@@ -489,7 +489,7 @@ async function saveToGitHub() {
     const putRes = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
