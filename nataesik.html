@@ -141,15 +141,15 @@
     </div>
     <div style="display: flex; gap: 4px;">
       <!-- 테마 전환 버튼 -->
-      <button onclick="toggleTheme()" id="themeBtn" title="테마 전환" style="font-size: 11px; font-weight: 600; color: #c084fc; background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
+      <button type="button" onclick="toggleTheme()" id="themeBtn" title="테마 전환" style="font-size: 11px; font-weight: 600; color: #c084fc; background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
       </button>
       <!-- Gist 수동 동기화 불러오기 버튼 -->
-      <button onclick="loadFromGist()" title="Gist에서 불러오기" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
+      <button type="button" onclick="loadFromGist()" title="Gist에서 불러오기" style="font-size: 11px; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
         <i class="fa-solid fa-cloud-arrow-down"></i> 동기화
       </button>
       <!-- 초기화 버튼 -->
-      <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
+      <button type="button" onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 8px 10px; border-radius: 14px; cursor: pointer;">
         <i class="fa-solid fa-rotate-right"></i>
       </button>
     </div>
@@ -220,10 +220,10 @@
 
     </div>
     <div style="display: flex; justify-content: center; gap: 5px; margin-top: 10px;" id="dotContainer">
-      <button onclick="scrollToCard(0)" id="dot0" style="width: 16px; height: 5px; border-radius: 3px; background: #c084fc; border: none; cursor: pointer;"></button>
-      <button onclick="scrollToCard(1)" id="dot1" style="width: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2); border: none; cursor: pointer;"></button>
-      <button onclick="scrollToCard(2)" id="dot2" style="width: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2); border: none; cursor: pointer;"></button>
-      <button onclick="scrollToCard(3)" id="dot3" style="width: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2); border: none; cursor: pointer;"></button>
+      <button type="button" onclick="scrollToCard(0)" id="dot0" style="width: 16px; height: 5px; border-radius: 3px; background: #c084fc; border: none; cursor: pointer;"></button>
+      <button type="button" onclick="scrollToCard(1)" id="dot1" style="width: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2); border: none; cursor: pointer;"></button>
+      <button type="button" onclick="scrollToCard(2)" id="dot2" style="width: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2); border: none; cursor: pointer;"></button>
+      <button type="button" onclick="scrollToCard(3)" id="dot3" style="width: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2); border: none; cursor: pointer;"></button>
     </div>
   </div>
 
