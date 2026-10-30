@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NA TEA SIK</title>
+
+<!-- 아이폰 홈 화면 추가 및 SNS 공유 시 연동되는 메타 태그 (오픈그래프 & 애플 터치 아이콘) -->
+<meta property="-apple-mobile-web-app-title" content="NA TEA SIK">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="NA TEA SIK - EV Vehicle Manager">
+<meta property="og:description" content="스마트한 전기차 지출 및 크레딧 관리 차계부">
+<meta property="og:image" content="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%2307050f'><rect width='512' height='512' rx='110' fill='%23140a23'/><path d='M320 120H192c-17.7 0-32 14.3-32 32v208c0 17.7 14.3 32 32 32h128c17.7 0 32-14.3 32-32V152c0-17.7-14.3-32-32-32z' fill='%237c3aed'/><path d='M256 180v152M190 256l66 66 66-66' stroke='%23ffffff' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23140a23'><rect width='512' height='512' rx='110' fill='%23140a23'/><path d='M256 130L140 240h75v142h82V240h75L256 130z' fill='%23c084fc'/></svg>">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -228,7 +238,7 @@
           </div>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px;">
-          <span style="color: rgba(255,255,255,0.7);">정비 및 기타 지출 건수</span>
+          <span style="color: rgba(255,255,255,0.7);">지출 내역 건수</span>
           <span id="generalExpenseCountDisplay" style="font-weight: 700; font-size: 13px;">0 건</span>
         </div>
       </section>
@@ -511,7 +521,7 @@ function scrollToCard(index) {
   updateDots(index);
 }
 
-// 구분 셀렉트 선택 시 해당 슬라이드 카드로 자동 스크롤 연동 (슬라이드 1~4 매칭)
+// 구분 셀렉트 선택 시 슬라이드 1~4 매칭 자동 이동
 function handleCategoryInput() {
   const cat = categorySelect.value;
   amountInput.readOnly = false; amountLabel.textContent = "금액 (원)";
