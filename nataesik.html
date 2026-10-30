@@ -297,7 +297,7 @@
           <span id="selectedDateText">날짜를 선택하세요</span>
           <i class="fa-regular fa-calendar" style="color: #c084fc;"></i>
         </div>
-        <input type="hidden" id="recordDate" required>
+        <input type="text" id="recordDate" style="display:none;" required>
       </div>
       <div>
         <label id="amountLabel" style="display: block; font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 5px;">금액 (원)</label>
@@ -378,18 +378,24 @@ let currentCalDate = new Date();
 let selectedDateStr = new Date().toISOString().split('T')[0];
 
 function initCalendarUI() {
-  document.getElementById('recordDate').value = selectedDateStr;
-  const d = new Date(selectedDateStr);
-  document.getElementById('selectedDateText').textContent = `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}`;
+  const dateInput = document.getElementById('recordDate');
+  const dateText = document.getElementById('selectedDateText');
+  if (dateInput) dateInput.value = selectedDateStr;
+  if (dateText) {
+    const d = new Date(selectedDateStr);
+    dateText.textContent = `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}`;
+  }
 }
 
 function openCalendar() {
-  document.getElementById('calModal').style.display = 'flex';
+  const modal = document.getElementById('calModal');
+  if (modal) modal.style.display = 'flex';
   renderCalendarGrid();
 }
 
 function closeCalendar() {
-  document.getElementById('calModal').style.display = 'none';
+  const modal = document.getElementById('calModal');
+  if (modal) modal.style.display = 'none';
 }
 
 function changeMonth(diff) {
@@ -400,7 +406,8 @@ function changeMonth(diff) {
 function renderCalendarGrid() {
   const year = currentCalDate.getFullYear();
   const month = currentCalDate.getMonth();
-  document.getElementById('calTitle').textContent = `${year}년 ${month + 1}월`;
+  const titleEl = document.getElementById('calTitle');
+  if (titleEl) titleEl.textContent = `${year}년 ${month + 1}월`;
 
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month + 1, 0).getDate();
@@ -431,22 +438,25 @@ function renderCalendarGrid() {
     daysHtml += `<div class="cal-cell other-month" onclick="selectDate('${fullStr}')">${i}</div>`;
   }
 
-  document.getElementById('calDays').innerHTML = daysHtml;
+  const gridEl = document.getElementById('calDays');
+  if (gridEl) gridEl.innerHTML = daysHtml;
 }
 
 function selectDate(dateStr) {
   selectedDateStr = dateStr;
-  document.getElementById('recordDate').value = dateStr;
-  const d = new Date(dateStr);
-  document.getElementById('selectedDateText').textContent = `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}`;
+  const dateInput = document.getElementById('recordDate');
+  const dateText = document.getElementById('selectedDateText');
+  if (dateInput) dateInput.value = dateStr;
+  if (dateText) {
+    const d = new Date(dateStr);
+    dateText.textContent = `${d.getFullYear()}. ${String(d.getMonth()+1).padStart(2,'0')}. ${String(d.getDate()).padStart(2,'0')}`;
+  }
   closeCalendar();
 }
 
-initCalendarUI();
-
 let records = [];
 
-// 안전한 GitHub 데이터 로드 (CORS/네트워크 에러 방어)
+// GitHub 데이터 로드
 async function loadFromGitHub() {
   try {
     const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?t=${Date.now()}`;
@@ -462,16 +472,15 @@ async function loadFromGitHub() {
       return;
     }
   } catch (e) {
-    console.warn("GitHub API 직접 호출 차단됨, 로컬 데이터 사용");
+    console.warn("GitHub API 로드 실패, 로컬 데이터 사용");
   }
 
-  // API 실패 시 브라우저 로컬 저장소 활용
   records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
   checkAndGenerateAutomaticRecords();
   saveAndRender(false);
 }
 
-// 안전한 GitHub 자동 저장 (에러 시 로컬에 우선 반영)
+// GitHub 자동 저장
 async function saveToGitHub() {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
   try {
@@ -499,7 +508,7 @@ async function saveToGitHub() {
       })
     });
   } catch (err) {
-    console.warn("GitHub 자동 저장 네트워크 에러 (로컬에만 반영됨)");
+    console.warn("GitHub 자동 저장 에러 (로컬에만 반영됨)");
   }
 }
 
@@ -548,51 +557,43 @@ function resetData() {
   }
 }
 
-const recordForm = document.getElementById('recordForm'); 
-const recordList = document.getElementById('recordList');
-const realUsedDisplay = document.getElementById('realUsedDisplay'); 
-const chargeDiscountDisplay = document.getElementById('chargeDiscountDisplay');
-const totalBenefitDisplay = document.getElementById('totalBenefitDisplay');
-const totalOtherChargeDisplay = document.getElementById('totalOtherChargeDisplay'); 
-const otherChargeCountDisplay = document.getElementById('otherChargeCountDisplay');
-const totalTeslaDisplay = document.getElementById('totalTeslaDisplay');
-const teslaCountDisplay = document.getElementById('teslaCountDisplay');
-const totalGeneralExpenseDisplay = document.getElementById('totalGeneralExpenseDisplay');
-const generalExpenseCountDisplay = document.getElementById('generalExpenseCountDisplay');
-const totalExpenseDisplay = document.getElementById('totalExpenseDisplay'); 
-const recordCountEl = document.getElementById('recordCount');
-const categorySelect = document.getElementById('category'); 
-const amountInput = document.getElementById('amount'); 
-const amountLabel = document.getElementById('amountLabel'); 
-const pointPreview = document.getElementById('pointPreview');
-const filterCategory = document.getElementById('filterCategory'); 
-const filterYear = document.getElementById('filterYear'); 
-const filterMonth = document.getElementById('filterMonth');
 const cardSlider = document.getElementById('cardSlider'); 
 const dots = [document.getElementById('dot0'), document.getElementById('dot1'), document.getElementById('dot2'), document.getElementById('dot3')];
 
-cardSlider.addEventListener('scroll', () => {
-  const scrollLeft = cardSlider.scrollLeft; const width = cardSlider.clientWidth; const index = Math.round(scrollLeft / width);
-  updateDots(index);
-});
+if (cardSlider) {
+  cardSlider.addEventListener('scroll', () => {
+    const scrollLeft = cardSlider.scrollLeft; const width = cardSlider.clientWidth; const index = Math.round(scrollLeft / width);
+    updateDots(index);
+  });
+}
 
 function updateDots(index) {
   dots.forEach((dot, idx) => { 
-    dot.style.width = idx === index ? "16px" : "5px";
-    dot.style.background = idx === index ? "#c084fc" : "rgba(255,255,255,0.2)";
+    if (dot) {
+      dot.style.width = idx === index ? "16px" : "5px";
+      dot.style.background = idx === index ? "#c084fc" : "rgba(255,255,255,0.2)";
+    }
   });
 }
 
 function scrollToCard(index) { 
-  cardSlider.scrollTo({ left: cardSlider.clientWidth * index, behavior: 'smooth' }); 
-  updateDots(index);
+  if (cardSlider) {
+    cardSlider.scrollTo({ left: cardSlider.clientWidth * index, behavior: 'smooth' }); 
+    updateDots(index);
+  }
 }
 
-// 셀렉트 변경 시 슬라이드 카드 자동 매칭 연동
+const categorySelect = document.getElementById('category'); 
+const amountInput = document.getElementById('amount'); 
+const amountLabel = document.getElementById('amountLabel'); 
+const pointPreview = document.getElementById('pointPreview');
+
 function handleCategoryInput() {
+  if (!categorySelect) return;
   const cat = categorySelect.value;
-  amountInput.readOnly = false; amountLabel.textContent = "금액 (원)";
-  if (cat === '채비 카드충전') { updatePointPreview(); } else { pointPreview.style.display = 'none'; }
+  if (amountInput) amountInput.readOnly = false; 
+  if (amountLabel) amountLabel.textContent = "금액 (원)";
+  if (cat === '채비 카드충전') { updatePointPreview(); } else if (pointPreview) { pointPreview.style.display = 'none'; }
 
   if (cat.startsWith('채비')) {
     scrollToCard(0); 
@@ -605,9 +606,16 @@ function handleCategoryInput() {
   }
 }
 
-amountInput.addEventListener('input', () => { if (categorySelect.value === '채비 카드충전') { updatePointPreview(); } });
+if (amountInput) {
+  amountInput.addEventListener('input', () => { 
+    if (categorySelect && categorySelect.value === '채비 카드충전') { updatePointPreview(); } 
+  });
+}
+
 function updatePointPreview() {
-  const val = Number(amountInput.value) || 0; const earnedPoint = Math.floor(val * 0.05);
+  if (!amountInput || !pointPreview) return;
+  const val = Number(amountInput.value) || 0; 
+  const earnedPoint = Math.floor(val * 0.05);
   if (val > 0) { 
     pointPreview.textContent = `💡 저장 시 5% 적립금 (${earnedPoint.toLocaleString()}원)이 자동 적립됩니다.`; 
     pointPreview.style.display = 'block'; 
@@ -615,26 +623,30 @@ function updatePointPreview() {
     pointPreview.style.display = 'none'; 
   }
 }
-handleCategoryInput();
 
-recordForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const category = categorySelect.value; 
-  const date = document.getElementById('recordDate').value; 
-  const amount = Number(amountInput.value); 
-  const memo = document.getElementById('memo').value;
+const recordForm = document.getElementById('recordForm');
+if (recordForm) {
+  recordForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const category = categorySelect ? categorySelect.value : '기타'; 
+    const dateInputEl = document.getElementById('recordDate');
+    const date = dateInputEl ? dateInputEl.value : selectedDateStr; 
+    const amount = amountInput ? Number(amountInput.value) : 0; 
+    const memoEl = document.getElementById('memo');
+    const memo = memoEl ? memoEl.value : '';
 
-  records.push({ id: Date.now(), category, date, amount, memo });
-  if (category === '채비 카드충전') {
-    const earnedPoint = Math.floor(amount * 0.05);
-    if (earnedPoint > 0) { records.push({ id: Date.now() + 1, category: '채비 보너스포인트 적립', date, amount: earnedPoint, memo: memo ? `${memo} 충전 적립 5%` : '충전 적립 5%' }); }
-  }
-  saveAndRender(true); 
-  recordForm.reset(); 
-  initCalendarUI(); 
-  handleCategoryInput();
-  alert('저장 완료!');
-});
+    records.push({ id: Date.now(), category, date, amount, memo });
+    if (category === '채비 카드충전') {
+      const earnedPoint = Math.floor(amount * 0.05);
+      if (earnedPoint > 0) { records.push({ id: Date.now() + 1, category: '채비 보너스포인트 적립', date, amount: earnedPoint, memo: memo ? `${memo} 충전 적립 5%` : '충전 적립 5%' }); }
+    }
+    saveAndRender(true); 
+    recordForm.reset(); 
+    initCalendarUI(); 
+    handleCategoryInput();
+    alert('저장 완료!');
+  });
+}
 
 function saveAndRender(syncGit = true) { 
   localStorage.setItem('nathe_car_records', JSON.stringify(records)); 
@@ -645,30 +657,50 @@ function saveAndRender(syncGit = true) {
   }
 }
 
+const filterCategory = document.getElementById('filterCategory'); 
+const filterYear = document.getElementById('filterYear'); 
+const filterMonth = document.getElementById('filterMonth');
+
 function handleCategoryChange() {
+  if (!filterCategory || !filterYear || !filterMonth) return;
   const catVal = filterCategory.value;
-  if (!catVal) { filterYear.value = ""; filterYear.disabled = true; filterYear.innerHTML = '<option value="">연도 선택</option>'; filterMonth.value = ""; filterMonth.disabled = true; filterMonth.innerHTML = '<option value="">월 선택</option>'; }
-  else { updateFilterYears(); filterYear.disabled = false; filterMonth.value = ""; filterMonth.disabled = true; filterMonth.innerHTML = '<option value="">월 선택</option>'; }
+  if (!catVal) { 
+    filterYear.value = ""; filterYear.disabled = true; filterYear.innerHTML = '<option value="">연도 선택</option>'; 
+    filterMonth.value = ""; filterMonth.disabled = true; filterMonth.innerHTML = '<option value="">월 선택</option>'; 
+  } else { 
+    updateFilterYears(); filterYear.disabled = false; 
+    filterMonth.value = ""; filterMonth.disabled = true; filterMonth.innerHTML = '<option value="">월 선택</option>'; 
+  }
   renderApp();
 }
+
 function handleYearChange() {
+  if (!filterYear || !filterMonth) return;
   const yearVal = filterYear.value;
-  if (!yearVal) { filterMonth.value = ""; filterMonth.disabled = true; filterMonth.innerHTML = '<option value="">월 선택</option>'; } else { updateFilterMonths(); filterMonth.disabled = false; }
+  if (!yearVal) { filterMonth.value = ""; filterMonth.disabled = true; filterMonth.innerHTML = '<option value="">월 선택</option>'; } 
+  else { updateFilterMonths(); filterMonth.disabled = false; }
   renderApp();
 }
+
 function updateFilterYears() {
-  const catVal = filterCategory.value; const filtered = catVal ? records.filter(r => r.category === catVal || (catVal === '채비 총구독비' && (r.category === '채비 월 구독비' || r.category === '채비 총구독비')) || (catVal === '채비 월 보너스 크레딧' && (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧')) || (catVal === '채비 보너스포인트 적립' && r.category === '채비 보너스포인트 적립')) : records;
+  if (!filterCategory || !filterYear) return;
+  const catVal = filterCategory.value; 
+  const filtered = catVal ? records.filter(r => r.category === catVal || (catVal === '채비 총구독비' && (r.category === '채비 월 구독비' || r.category === '채비 총구독비')) || (catVal === '채비 월 보너스 크레딧' && (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧')) || (catVal === '채비 보너스포인트 적립' && r.category === '채비 보너스포인트 적립')) : records;
   const years = [...new Set(filtered.map(r => r.date.split('-')[0]))].sort().reverse();
-  const currentYear = filterYear.value; let optionsHtml = '<option value="">모든 연도</option>';
+  const currentYear = filterYear.value; 
+  let optionsHtml = '<option value="">모든 연도</option>';
   years.forEach(y => { optionsHtml += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}년</option>`; });
   filterYear.innerHTML = optionsHtml;
   if (years.length === 0) { filterYear.value = ""; filterYear.disabled = true; }
 }
+
 function updateFilterMonths() {
+  if (!filterCategory || !filterYear || !filterMonth) return;
   const catVal = filterCategory.value; const yearVal = filterYear.value;
   const filtered = records.filter(r => { const [y, m] = r.date.split('-'); const matchCat = !catVal || r.category === catVal || (catVal === '채비 총구독비' && (r.category === '채비 월 구독비' || r.category === '채비 총구독비')) || (catVal === '채비 월 보너스 크레딧' && (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧')) || (catVal === '채비 보너스포인트 적립' && r.category === '채비 보너스포인트 적립'); return matchCat && (!yearVal || y === yearVal); });
   const months = [...new Set(filtered.map(r => r.date.split('-')[1]))].sort();
-  const currentMonth = filterMonth.value; let optionsHtml = '<option value="">모든 월</option>';
+  const currentMonth = filterMonth.value; 
+  let optionsHtml = '<option value="">모든 월</option>';
   months.forEach(m => { optionsHtml += `<option value="${m}" ${m === currentMonth ? 'selected' : ''}>${Number(m)}월</option>`; });
   filterMonth.innerHTML = optionsHtml;
   if (months.length === 0) { filterMonth.value = ""; filterMonth.disabled = true; }
@@ -729,4 +761,98 @@ function renderApp() {
   });
 
   let totalEarnedBenefit = totalBenefit;
-  let finalCardRemaining = manualRemaining !== null ? manual
+  let finalCardRemaining = manualRemaining !== null ? manualRemaining : (totalRealCharge + totalEarnedBenefit);
+  let realUsedAmount = (totalRealCharge + totalEarnedBenefit) - finalCardRemaining;
+  if (realUsedAmount < 0) realUsedAmount = 0;
+
+  let chargeDiscountAmount = Math.floor(realUsedAmount * 0.06);
+
+  const cardRemainingEl = document.getElementById('cardRemaining');
+  const realUsedDisplay = document.getElementById('realUsedDisplay');
+  const chargeDiscountDisplay = document.getElementById('chargeDiscountDisplay');
+  const totalBenefitDisplay = document.getElementById('totalBenefitDisplay');
+  const totalOtherChargeDisplay = document.getElementById('totalOtherChargeDisplay');
+  const otherChargeCountDisplay = document.getElementById('otherChargeCountDisplay');
+  const totalTeslaDisplay = document.getElementById('totalTeslaDisplay');
+  const teslaCountDisplay = document.getElementById('teslaCountDisplay');
+  const totalGeneralExpenseDisplay = document.getElementById('totalGeneralExpenseDisplay');
+  const generalExpenseCountDisplay = document.getElementById('generalExpenseCountDisplay');
+  const totalExpenseDisplay = document.getElementById('totalExpenseDisplay');
+  const recordCountEl = document.getElementById('recordCount');
+  const recordList = document.getElementById('recordList');
+
+  if (cardRemainingEl) cardRemainingEl.textContent = finalCardRemaining.toLocaleString() + " 원";
+  if (realUsedDisplay) realUsedDisplay.textContent = realUsedAmount.toLocaleString() + " 원";
+  if (chargeDiscountDisplay) chargeDiscountDisplay.textContent = chargeDiscountAmount.toLocaleString() + " 원";
+  if (totalBenefitDisplay) totalBenefitDisplay.textContent = totalEarnedBenefit.toLocaleString() + " 원";
+
+  if (totalOtherChargeDisplay) totalOtherChargeDisplay.innerHTML = `${totalOtherCharge.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
+  if (otherChargeCountDisplay) otherChargeCountDisplay.textContent = `${otherChargeCount}건`;
+
+  if (totalTeslaDisplay) totalTeslaDisplay.innerHTML = `${totalTesla.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
+  if (teslaCountDisplay) teslaCountDisplay.textContent = `${teslaCount}건`;
+
+  if (totalGeneralExpenseDisplay) totalGeneralExpenseDisplay.innerHTML = `${totalGeneralExpense.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
+  if (generalExpenseCountDisplay) generalExpenseCountDisplay.textContent = `${generalExpenseCount}건`;
+
+  if (totalExpenseDisplay) totalExpenseDisplay.textContent = `${totalExpense.toLocaleString()} 원`;
+
+  const catVal = filterCategory ? filterCategory.value : ""; 
+  const yearVal = filterYear ? filterYear.value : ""; 
+  const monthVal = filterMonth ? filterMonth.value : "";
+
+  let displayedRecords = records.filter(r => {
+    const [y, m] = r.date.split('-');
+    const matchCat = !catVal || r.category === catVal || (catVal === '채비 총구독비' && (r.category === '채비 월 구독비' || r.category === '채비 총구독비')) || (catVal === '채비 월 보너스 크레딧' && (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧')) || (catVal === '채비 보너스포인트 적립' && r.category === '채비 보너스포인트 적립');
+    const matchYear = !yearVal || y === yearVal; const matchMonth = !monthVal || m === monthVal;
+    return matchCat && matchYear && matchMonth;
+  });
+  displayedRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (recordCountEl) recordCountEl.textContent = `${displayedRecords.length}건`;
+
+  if (!recordList) return;
+  if (displayedRecords.length === 0) {
+    recordList.innerHTML = `<div style="text-align: center; padding: 24px 0; color: #94a3b8; font-size: 11px;"><i class="fa-regular fa-folder-open" style="font-size: 20px; margin-bottom: 6px; display: block;"></i>조건에 일치하는 기록이 없습니다.</div>`;
+    return;
+  }
+
+  let html = '';
+  displayedRecords.forEach(r => {
+    let badgeBg = 'rgba(168, 85, 247, 0.1)';
+    let badgeColor = '#c084fc';
+    let displaySign = '';
+    let amountColor = '#f1f5f9';
+
+    const catName = (r.category === '채비 월 구독비' || r.category === '채비 총구독비') ? '[채비] 총구독비' : ((r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧') ? '[채비] 월 보너스 크레딧' : (r.category === '채비 보너스포인트 적립' ? '[채비] 충전 적립 5%' : r.category));
+
+    if (r.category === '채비 카드충전') { badgeBg = 'rgba(34, 197, 94, 0.1)'; badgeColor = '#4ade80'; displaySign = '-'; amountColor = '#f43f5e'; }
+    else if (r.category === '채비 카드 잔여') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
+    else if (r.category === '채비 월 구독비' || r.category === '채비 총구독비') { badgeBg = 'rgba(6, 182, 212, 0.1)'; badgeColor = '#22d3ee'; displaySign = '-'; amountColor = '#f43f5e'; }
+    else if (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧' || r.category === '채비 보너스포인트 적립' || r.category === '채비 번개크레딧') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
+    else if (r.category === '기타 충전소 차감') { badgeBg = 'rgba(147, 51, 234, 0.1)'; badgeColor = '#c084fc'; displaySign = '-'; amountColor = '#f43f5e'; }
+    else if (r.category === '테슬라 충전지출') { badgeBg = 'rgba(239, 68, 68, 0.15)'; badgeColor = '#f87171'; displaySign = '-'; amountColor = '#f43f5e'; }
+    else if (r.category === '정비항목 지출내역' || r.category === '기타 지출내역') { badgeBg = 'rgba(51, 65, 85, 0.3)'; badgeColor = '#94a3b8'; displaySign = '-'; amountColor = '#f43f5e'; }
+
+    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(168, 85, 247, 0.1); border-radius: 12px; transition: 0.2s;">
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor};">${catName}</span>
+          <span style="font-size: 10px; color: #94a3b8;">${r.date}</span>
+        </div>
+        <p style="font-size: 11px; font-weight: 500; color: #cbd5e1;">${r.memo ? r.memo : '메모 없음'}</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 800; color: ${amountColor};">${displaySign}${r.amount.toLocaleString()}원</span>
+        <button onclick="deleteRecord(${r.id})" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`;
+  });
+  recordList.innerHTML = html;
+}
+
+// 최초 실행 시 초기화 및 데이터 로드
+initCalendarUI();
+loadFromGitHub();
+</script>
+</body>
+</html>
