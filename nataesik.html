@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NA TEA SIK</title>
 
-<!-- 아이폰 홈 화면 추가 및 SNS 공유 시 연동되는 메타 태그 (오픈그래프 & 애플 터치 아이콘) -->
+<!-- 아이폰 홈 화면 추가 및 SNS 공유 메타 태그 -->
 <meta property="-apple-mobile-web-app-title" content="NA TEA SIK">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -163,15 +163,11 @@
       <h1 style="font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; margin-top: 1px;">NA TEA SIK</h1>
     </div>
     <div style="display: flex; gap: 6px;">
-      <!-- JSON 백업/복원 버튼 추가 -->
-      <button onclick="exportJSON()" title="데이터 JSON 백업" style="font-size: 11px; font-weight: 600; color: #60a5fa; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
-        <i class="fa-solid fa-download"></i>
+      <!-- GitHub 동기화 상태 표시 및 수동 새로고침 버튼 -->
+      <button onclick="loadFromGitHub()" title="GitHub에서 최신 데이터 불러오기" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 3px;"></i> 동기화
       </button>
-      <label title="데이터 JSON 불러오기" style="font-size: 11px; font-weight: 600; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center;">
-        <i class="fa-solid fa-upload"></i>
-        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display: none;">
-      </label>
-      <button onclick="resetData()" title="데이터 초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 10px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
+      <button onclick="resetData()" title="초기화" style="font-size: 11px; font-weight: 600; color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 6px 12px; border-radius: 14px; cursor: pointer; transition: 0.2s;">
         <i class="fa-solid fa-rotate-right"></i>
       </button>
     </div>
@@ -314,7 +310,7 @@
         <input type="text" id="memo" placeholder="예: 슈퍼차저, 타이어 교환 등" class="input-field">
       </div>
       <button type="submit" style="width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: #ffffff; font-weight: 700; padding: 12px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.4); cursor: pointer; font-size: 13px; transition: 0.2s; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); margin-top: 2px;">
-        <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기
+        <i class="fa-solid fa-check" style="margin-right: 5px;"></i> 저장하기 (GitHub 동기화)
       </button>
     </form>
   </section>
@@ -372,6 +368,13 @@
 </div>
 
 <script>
+// ==================== [GitHub API 설정] ====================
+const GITHUB_TOKEN = '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';
+const REPO_OWNER = 'nec-works';
+const REPO_NAME = 'NaTeaSik App';
+const FILE_PATH = 'data.json';
+// ============================================================
+
 let currentCalDate = new Date();
 let selectedDateStr = new Date().toISOString().split('T')[0];
 
@@ -442,7 +445,72 @@ function selectDate(dateStr) {
 
 initCalendarUI();
 
-let records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
+let records = [];
+
+// 1. GitHub에서 data.json 불러오기 (초기 실행 및 동기화 버튼)
+async function loadFromGitHub() {
+  try {
+    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?t=${Date.now()}`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const decodedContent = decodeURIComponent(escape(atob(data.content)));
+      records = JSON.parse(decodedContent);
+      checkAndGenerateAutomaticRecords();
+      saveAndRender(false); // 로컬에만 반영하고 깃허브 재요청 방지
+      console.log('GitHub에서 데이터를 성공적으로 불러왔습니다.');
+    } else {
+      // 파일이 없거나 오류 시 로컬스토리지 백업 활용
+      records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
+      checkAndGenerateAutomaticRecords();
+      saveAndRender(false);
+    }
+  } catch (e) {
+    console.warn('GitHub 연동 실패, 로컬 데이터를 불러옵니다.');
+    records = JSON.parse(localStorage.getItem('nathe_car_records')) || [];
+    checkAndGenerateAutomaticRecords();
+    saveAndRender(false);
+  }
+}
+
+// 2. GitHub에 data.json 자동 저장 (Commit)
+async function saveToGitHub() {
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+  try {
+    // 기존 파일의 sha 값 가져오기
+    let sha = '';
+    const getRes = await fetch(url, {
+      headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+    });
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+    }
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(records, null, 2))));
+
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Auto-update vehicle records via Na Tea SIK App',
+        content: content,
+        sha: sha
+      })
+    });
+
+    if (!putRes.ok) {
+      console.error('GitHub 자동 저장 실패');
+    }
+  } catch (err) {
+    console.error('GitHub 통신 오류:', err);
+  }
+}
 
 function checkAndGenerateAutomaticRecords() {
   let modified = false; 
@@ -480,47 +548,12 @@ function checkAndGenerateAutomaticRecords() {
     localStorage.setItem('nathe_car_records', JSON.stringify(records)); 
   }
 }
-checkAndGenerateAutomaticRecords();
 
 function resetData() {
-  if (confirm('모든 기록을 초기화하고 새로 시작하시겠습니까?')) {
-    localStorage.removeItem('nathe_car_records');
+  if (confirm('모든 기록을 초기화하시겠습니까?')) {
     records = [];
     checkAndGenerateAutomaticRecords();
-    saveAndRender();
-  }
-}
-
-// JSON 백업 다운로드 함수
-function exportJSON() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "nathe_car_backup.json");
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-}
-
-// JSON 복원 업로드 함수
-function importJSON(event) {
-  const fileReader = new FileReader();
-  if(event.target.files[0]) {
-    fileReader.readAsText(event.target.files[0], "UTF-8");
-    fileReader.onload = (e) => {
-      try {
-        const importedRecords = JSON.parse(e.target.result);
-        if (Array.isArray(importedRecords)) {
-          records = importedRecords;
-          saveAndRender();
-          alert('데이터를 성공적으로 불러왔습니다!');
-        } else {
-          alert('올바른 데이터 형식이 아닙니다.');
-        }
-      } catch (err) {
-        alert('JSON 파일 파싱 중 오류가 발생했습니다.');
-      }
-    };
+    saveAndRender(true);
   }
 }
 
@@ -564,20 +597,19 @@ function scrollToCard(index) {
   updateDots(index);
 }
 
-// 구분 셀렉트 선택 시 슬라이드 1~4 매칭 자동 이동
 function handleCategoryInput() {
   const cat = categorySelect.value;
   amountInput.readOnly = false; amountLabel.textContent = "금액 (원)";
   if (cat === '채비 카드충전') { updatePointPreview(); } else { pointPreview.style.display = 'none'; }
 
   if (cat.startsWith('채비')) {
-    scrollToCard(0); // 슬라이드 1: 채비
+    scrollToCard(0); 
   } else if (cat === '기타 충전소 차감') {
-    scrollToCard(1); // 슬라이드 2: 충전 기타
+    scrollToCard(1); 
   } else if (cat === '테슬라 충전지출') {
-    scrollToCard(2); // 슬라이드 3: 충전 슈퍼차저
+    scrollToCard(2); 
   } else if (cat === '정비항목 지출내역') {
-    scrollToCard(3); // 슬라이드 4: 지출 기타
+    scrollToCard(3); 
   }
 }
 
@@ -601,10 +633,21 @@ recordForm.addEventListener('submit', (e) => {
     const earnedPoint = Math.floor(amount * 0.05);
     if (earnedPoint > 0) { records.push({ id: Date.now() + 1, category: '채비 보너스포인트 적립', date, amount: earnedPoint, memo: memo ? `${memo} 충전 적립 5%` : '충전 적립 5%' }); }
   }
-  saveAndRender(); recordForm.reset(); initCalendarUI(); handleCategoryInput();
+  saveAndRender(true); 
+  recordForm.reset(); 
+  initCalendarUI(); 
+  handleCategoryInput();
+  alert('저장 완료 및 GitHub 동기화 중!');
 });
 
-function saveAndRender() { localStorage.setItem('nathe_car_records', JSON.stringify(records)); updateFilterYears(); renderApp(); }
+function saveAndRender(syncGit = true) { 
+  localStorage.setItem('nathe_car_records', JSON.stringify(records)); 
+  updateFilterYears(); 
+  renderApp();
+  if (syncGit) {
+    saveToGitHub();
+  }
+}
 
 function handleCategoryChange() {
   const catVal = filterCategory.value;
@@ -635,7 +678,12 @@ function updateFilterMonths() {
   if (months.length === 0) { filterMonth.value = ""; filterMonth.disabled = true; }
 }
 
-function deleteRecord(id) { if(confirm('정말 이 내역을 삭제하시겠습니까?')) { records = records.filter(r => r.id !== id); saveAndRender(); } }
+function deleteRecord(id) { 
+  if(confirm('정말 이 내역을 삭제하시겠습니까?')) { 
+    records = records.filter(r => r.id !== id); 
+    saveAndRender(true); 
+  } 
+}
 
 function renderApp() {
   let totalRealCharge = 0; 
@@ -685,77 +733,4 @@ function renderApp() {
   });
 
   let totalEarnedBenefit = totalBenefit;
-  let finalCardRemaining = manualRemaining !== null ? manualRemaining : (totalRealCharge + totalEarnedBenefit);
-  let realUsedAmount = (totalRealCharge + totalEarnedBenefit) - finalCardRemaining;
-  if (realUsedAmount < 0) realUsedAmount = 0;
-
-  let chargeDiscountAmount = Math.floor(realUsedAmount * 0.06);
-
-  document.getElementById('cardRemaining').textContent = finalCardRemaining.toLocaleString() + " 원";
-  realUsedDisplay.textContent = realUsedAmount.toLocaleString() + " 원";
-  chargeDiscountDisplay.textContent = chargeDiscountAmount.toLocaleString() + " 원";
-  totalBenefitDisplay.textContent = totalEarnedBenefit.toLocaleString() + " 원";
-
-  totalOtherChargeDisplay.innerHTML = `${totalOtherCharge.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
-  otherChargeCountDisplay.textContent = `${otherChargeCount}건`;
-
-  totalTeslaDisplay.innerHTML = `${totalTesla.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
-  teslaCountDisplay.textContent = `${teslaCount}건`;
-
-  totalGeneralExpenseDisplay.innerHTML = `${totalGeneralExpense.toLocaleString()} <span style="font-size: 14px; font-weight: normal; opacity: 0.7;">원</span>`;
-  generalExpenseCountDisplay.textContent = `${generalExpenseCount}건`;
-
-  totalExpenseDisplay.textContent = `${totalExpense.toLocaleString()} 원`;
-
-  const catVal = filterCategory.value; const yearVal = filterYear.value; const monthVal = filterMonth.value;
-  let displayedRecords = records.filter(r => {
-    const [y, m] = r.date.split('-');
-    const matchCat = !catVal || r.category === catVal || (catVal === '채비 총구독비' && (r.category === '채비 월 구독비' || r.category === '채비 총구독비')) || (catVal === '채비 월 보너스 크레딧' && (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧')) || (catVal === '채비 보너스포인트 적립' && r.category === '채비 보너스포인트 적립');
-    const matchYear = !yearVal || y === yearVal; const matchMonth = !monthVal || m === monthVal;
-    return matchCat && matchYear && matchMonth;
-  });
-  displayedRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
-  recordCountEl.textContent = `${displayedRecords.length}건`;
-
-  if (displayedRecords.length === 0) {
-    recordList.innerHTML = `<div style="text-align: center; padding: 24px 0; color: #94a3b8; font-size: 11px;"><i class="fa-regular fa-folder-open" style="font-size: 20px; margin-bottom: 6px; display: block;"></i>조건에 일치하는 기록이 없습니다.</div>`;
-    return;
-  }
-
-  let html = '';
-  displayedRecords.forEach(r => {
-    let badgeBg = 'rgba(168, 85, 247, 0.1)';
-    let badgeColor = '#c084fc';
-    let displaySign = '';
-    let amountColor = '#f1f5f9';
-
-    const catName = (r.category === '채비 월 구독비' || r.category === '채비 총구독비') ? '[채비] 총구독비' : ((r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧') ? '[채비] 월 보너스 크레딧' : (r.category === '채비 보너스포인트 적립' ? '[채비] 충전 적립 5%' : r.category));
-
-    if (r.category === '채비 카드충전') { badgeBg = 'rgba(34, 197, 94, 0.1)'; badgeColor = '#4ade80'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '채비 카드 잔여') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
-    else if (r.category === '채비 월 구독비' || r.category === '채비 총구독비') { badgeBg = 'rgba(6, 182, 212, 0.1)'; badgeColor = '#22d3ee'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '채비 월 보너스포인트' || r.category === '채비 월 보너스 크레딧' || r.category === '채비 보너스포인트 적립' || r.category === '채비 번개크레딧') { badgeBg = 'rgba(168, 85, 247, 0.1)'; badgeColor = '#c084fc'; }
-    else if (r.category === '기타 충전소 차감') { badgeBg = 'rgba(147, 51, 234, 0.1)'; badgeColor = '#c084fc'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '테슬라 충전지출') { badgeBg = 'rgba(239, 68, 68, 0.15)'; badgeColor = '#f87171'; displaySign = '-'; amountColor = '#f43f5e'; }
-    else if (r.category === '정비항목 지출내역' || r.category === '기타 지출내역') { badgeBg = 'rgba(51, 65, 85, 0.3)'; badgeColor = '#94a3b8'; displaySign = '-'; amountColor = '#f43f5e'; }
-
-    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(168, 85, 247, 0.1); border-radius: 12px; transition: 0.2s;">
-      <div style="display: flex; flex-direction: column; gap: 3px;">
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor};">${catName}</span>
-          <span style="font-size: 10px; color: #94a3b8;">${r.date}</span>
-        </div>
-        <p style="font-size: 11px; font-weight: 500; color: #cbd5e1;">${r.memo ? r.memo : '메모 없음'}</p>
-      </div>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 13px; font-weight: 800; color: ${amountColor};">${displaySign}${r.amount.toLocaleString()}원</span>
-        <button onclick="deleteRecord(${r.id})" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#64748b'"><i class="fa-solid fa-trash-can"></i></button>
-      </div>
-    </div>`;
-  });
-  recordList.innerHTML = html;
-}
-saveAndRender();
-</script>
-</body>
-</html>
+  let finalCardRemaining = manual
